@@ -2,7 +2,6 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { inngest } from "../inngest/client.js";
-import { err } from "inngest/types";
 
 export const signup = async (req, res) => {
   const { email, password, skills = [] } = req.body;
@@ -68,5 +67,41 @@ export const logout = async (req, res) => {
     res.json({ message: "Logout succesfully" });
   } catch (error) {
     res.status(500).json({ error: "Logout failed", details: error.message });
+  }
+};
+
+//Update user
+export const updateUser = async (req, res) => {
+  const { skills = [], role, email } = req.body;
+
+  //only admin can update
+  try {
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ error: "User not found" });
+
+    await User.updateOne(
+      { email },
+      { skills: skills.length ? skills : user.skills, role },
+    );
+    return res.json({ msg: "User updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Update failed", details: error.message });
+  }
+};
+
+//to get all the users
+export const getUsers = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const users = await User.find().select("-password"); //get all the users but remove their passwords
+    return res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Fetching failed", details: error.message });
   }
 };
