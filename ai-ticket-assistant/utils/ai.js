@@ -1,5 +1,4 @@
 import { createAgent, gemini } from "@inngest/agent-kit";
-import { err } from "inngest/types";
 
 const analyzeTicket = async (ticket) => {
   const supportAgent = createAgent({
